@@ -1,0 +1,152 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Tue Oct 31 21:28:10 IST 2023
+  Author:  kavit
+  Type: BPEL 2.0 Process
+  Purpose: Synchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="PickBPELProcess"
+               targetNamespace="http://xmlns.oracle.com/SOAPractice/PickProject/PickBPELProcess"
+               xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+               xmlns:client="http://xmlns.oracle.com/SOAPractice/PickProject/PickBPELProcess"
+               xmlns:ora="http://schemas.oracle.com/xpath/extension"
+               xmlns:ui="http://xmlns.oracle.com/soa/designer"
+               xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap">
+
+    <import ui:processWSDL="true" namespace="http://xmlns.oracle.com/SOAPractice/PickProject/PickBPELProcess" location="../WSDLs/PickBPELProcess.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"/>
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    --> 
+  <partnerLinks>
+    <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="pickbpelprocess_client" partnerLinkType="client:PickBPELProcess" myRole="PickBPELProcessProvider"/>
+  </partnerLinks>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      VARIABLES                                                        
+      List of messages and XML documents used within this BPEL process 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <variables>
+    <!-- Reference to the message passed as input during initiation -->
+    <variable name="inputVariable" messageType="client:PickBPELProcessRequestMessage"/>
+
+    <!-- Reference to the message that will be returned to the requester-->
+    <variable name="outputVariable" messageType="client:PickBPELProcessResponseMessage"/>
+    <variable name="OnMessage_Addition_InputVariable" messageType="client:PickBPELProcessRequestMessage"/>
+    <variable name="OnMessage_Substraction_InputVariable" messageType="client:PickBPELProcessRequestMessage"/>
+    <variable name="OnMessage_Multiplication_InputVariable" messageType="client:PickBPELProcessRequestMessage"/>
+    <variable name="OnMessage_Division_InputVariable" messageType="client:PickBPELProcessRequestMessage"/>
+    <variable name="Reply_addition_Addition_OutputVariable" messageType="client:PickBPELProcessResponseMessage"/>
+    <variable name="Reply_sub_Substraction_OutputVariable" messageType="client:PickBPELProcessResponseMessage"/>
+  </variables>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC                                               
+     Set of activities coordinating the flow of messages across the    
+     services integrated within this business process                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <sequence name="main">
+
+    <!-- Receive input from requestor. (Note: This maps to operation defined in PickBPELProcess.wsdl) -->
+
+    <!-- Generate reply to synchronous request -->
+    <pick name="Pick1" createInstance="yes">
+      <onMessage bpelx:name="Addition" partnerLink="pickbpelprocess_client" variable="OnMessage_Addition_InputVariable"
+                 portType="client:PickBPELProcess" operation="Addition">
+        <sequence name="Sequence1">
+          <assign name="Assign_addition">
+            <copy>
+              <from>$OnMessage_Addition_InputVariable.payload/client:input1 + $OnMessage_Addition_InputVariable.payload/client:input2</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:result</to>
+            </copy>
+            <copy>
+              <from>'addition completed'</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:status</to>
+            </copy>
+          </assign>
+          <reply name="Reply_addition" partnerLink="pickbpelprocess_client" portType="client:PickBPELProcess"
+                 operation="Addition" variable="outputVariable"/>
+        </sequence>
+      </onMessage>
+      <onMessage bpelx:name="Substraction" partnerLink="pickbpelprocess_client"
+                 variable="OnMessage_Substraction_InputVariable" portType="client:PickBPELProcess"
+                 operation="Substraction">
+        <sequence name="Sequence2">
+          <assign name="Assign_Substraction">
+            <copy>
+              <from>$OnMessage_Substraction_InputVariable.payload/client:input1 - $OnMessage_Substraction_InputVariable.payload/client:input2</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:result</to>
+            </copy>
+            <copy>
+              <from>'Substraction Completed'</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:status</to>
+            </copy>
+          </assign>
+          <reply name="Reply_sub" partnerLink="pickbpelprocess_client" portType="client:PickBPELProcess"
+                 operation="Substraction" variable="outputVariable"/>
+        </sequence>
+      </onMessage>
+      <onMessage bpelx:name="Multiplication" partnerLink="pickbpelprocess_client"
+                 variable="OnMessage_Multiplication_InputVariable" portType="client:PickBPELProcess"
+                 operation="Multiplication">
+        <sequence name="Sequence3">
+          <assign name="Assign_multiplication">
+            <copy>
+              <from>$OnMessage_Multiplication_InputVariable.payload/client:input1 * $OnMessage_Multiplication_InputVariable.payload/client:input2</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:result</to>
+            </copy>
+            <copy>
+              <from>'Multiplication Completed'</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:status</to>
+            </copy>
+          </assign>
+          <reply name="Reply_Multiplication" partnerLink="pickbpelprocess_client" portType="client:PickBPELProcess"
+                 operation="Multiplication" variable="outputVariable"/>
+        </sequence>
+      </onMessage>
+      <onMessage bpelx:name="Division" partnerLink="pickbpelprocess_client" variable="OnMessage_Division_InputVariable"
+                 portType="client:PickBPELProcess" operation="Division">
+        <sequence name="Sequence4">
+          <assign name="Assign_Division">
+            <copy>
+              <from>$OnMessage_Division_InputVariable.payload/client:input1 div $OnMessage_Division_InputVariable.payload/client:input2</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:result</to>
+            </copy>
+            <copy>
+              <from>'Division Completed'</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:status</to>
+            </copy>
+          </assign>
+          <reply name="Reply_Division" partnerLink="pickbpelprocess_client" portType="client:PickBPELProcess"
+                 operation="Division" variable="outputVariable"/>
+        </sequence>
+      </onMessage>
+    </pick>
+  </sequence>
+</process>

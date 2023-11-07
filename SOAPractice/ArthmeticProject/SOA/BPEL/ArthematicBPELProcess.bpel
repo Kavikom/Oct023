@@ -1,0 +1,117 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Mon Nov 06 18:27:01 IST 2023
+  Author:  kavit
+  Type: BPEL 2.0 Process
+  Purpose: Asynchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="ArthematicBPELProcess"
+         targetNamespace="http://xmlns.oracle.com/SOAPractice/ArthmeticProject/ArthematicBPELProcess"
+         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:client="http://xmlns.oracle.com/SOAPractice/ArthmeticProject/ArthematicBPELProcess"
+         xmlns:ora="http://schemas.oracle.com/xpath/extension"
+         xmlns:ui="http://xmlns.oracle.com/soa/designer"
+         xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap">
+
+    <import ui:processWSDL="true" namespace="http://xmlns.oracle.com/SOAPractice/ArthmeticProject/ArthematicBPELProcess" location="../WSDLs/ArthematicBPELProcess.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"/>
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    --> 
+    <partnerLinks>
+        <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+        <partnerLink name="arthematicbpelprocess_client" partnerLinkType="client:ArthematicBPELProcess" myRole="ArthematicBPELProcessProvider" partnerRole="ArthematicBPELProcessRequester"/>
+    </partnerLinks>
+
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        VARIABLES                                                        
+        List of messages and XML documents used within this BPEL process 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <variables>
+        <!-- Reference to the message passed as input during initiation -->
+        <variable name="inputVariable" messageType="client:ArthematicBPELProcessRequestMessage"/>
+
+        <!-- Reference to the message that will be sent back to the requester during callback -->
+        <variable name="outputVariable" messageType="client:ArthematicBPELProcessResponseMessage"/>
+        <variable name="OnMessage_addOperation_InputVariable" messageType="client:ArthematicBPELProcessRequestMessage"/>
+        <variable name="Onmessage_add_output" messageType="client:ArthematicBPELProcessResponseMessage"/>
+        <variable name="OnMessage_subOperation_InputVariable" messageType="client:ArthematicBPELProcessRequestMessage"/>
+        <variable name="Reply_sub_subOperation_OutputVariable"
+                  messageType="client:ArthematicBPELProcessRequestMessage"/>
+        <variable name="Reply_sub_subOperation_OutputVariable_1"
+                  messageType="client:ArthematicBPELProcessRequestMessage"/>
+        <variable name="Reply_sub_subOperation_OutputVariable_2"
+                  messageType="client:ArthematicBPELProcessRequestMessage"/>
+        <variable name="sub_onmessageinput" messageType="client:ArthematicBPELProcessRequestMessage"/>
+        <variable name="sub_output" messageType="client:ArthematicBPELProcessRequestMessage"/>
+        <variable name="outputvarsub" messageType="client:ArthematicBPELProcessResponseMessage"/>
+    </variables>
+
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+       ORCHESTRATION LOGIC                                               
+       Set of activities coordinating the flow of messages across the    
+       services integrated within this business process                  
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <sequence name="main">
+        <!-- Receive input from requestor. (Note: This maps to operation defined in ArthematicBPELProcess.wsdl) -->
+
+        <!-- 
+          Asynchronous callback to the requester. (Note: the callback location and correlation id is transparently handled using WS-addressing.)
+        -->
+        <pick name="Pick1" createInstance="yes">
+            <onMessage bpelx:name="add_onMessage" partnerLink="arthematicbpelprocess_client"
+                       variable="OnMessage_addOperation_InputVariable" portType="client:ArthematicBPELProcess"
+                       operation="addOperation">
+                <sequence name="Sequence1">
+                    <assign name="Assign1">
+                        <copy>
+                            <from>$OnMessage_addOperation_InputVariable.payload/client:input1 +$OnMessage_addOperation_InputVariable.payload/client:input2</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$Onmessage_add_output.payload/client:result</to>
+                        </copy>
+                    </assign>
+                    <invoke name="Invoke_addonMessage" partnerLink="arthematicbpelprocess_client"
+                            portType="client:ArthematicBPELProcessCallback" operation="addResponseoperation"
+                            inputVariable="Onmessage_add_output" bpelx:invokeAsDetail="no"/>
+                </sequence>
+            </onMessage>
+            <onMessage bpelx:name="sub" partnerLink="arthematicbpelprocess_client" variable="sub_onmessageinput"
+                       portType="client:ArthematicBPELProcess" operation="subOperation">
+                <sequence name="Sequence2">
+                    <assign name="Assign2">
+                        <copy>
+                            <from>$sub_onmessageinput.payload/client:input1 -$sub_onmessageinput.payload/client:input2</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputvarsub.payload/client:result</to>
+                        </copy>
+                    </assign>
+                    <reply name="Reply_sub_output" partnerLink="arthematicbpelprocess_client" variable="outputvarsub"
+                           portType="client:ArthematicBPELProcess" operation="subOperation"/>
+                </sequence>
+            </onMessage>
+        </pick>
+    </sequence>
+</process>
