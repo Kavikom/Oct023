@@ -25,6 +25,7 @@
    </list>
    <list n="listOfChildren">
       <hash><url n="URL" path="ArthmeticProject/ArthmeticProject.jpr"/></hash>
+      <hash><url n="URL" path="BillingManagementSystem/BillingManagementSystem.jpr"/></hash>
       <hash><url n="URL" path="CVS/CVS.jpr"/></hash>
       <hash><url n="URL" path="Helloworld/Helloworld.jpr"/></hash>
       <hash><url n="URL" path="PickProject/PickProject.jpr"/></hash>
