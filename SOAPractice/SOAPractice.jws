@@ -25,7 +25,11 @@
    </list>
    <list n="listOfChildren">
       <hash><url n="URL" path="ArthmeticProject/ArthmeticProject.jpr"/></hash>
+<<<<<<< HEAD
       <hash><url n="URL" path="CardValidationSystem/CardValidationSystem.jpr"/></hash>
+=======
+      <hash><url n="URL" path="CVS/CVS.jpr"/></hash>
+>>>>>>> 8792e4518d62fb1747d29cfa5a325d57fb190e7c
       <hash><url n="URL" path="Helloworld/Helloworld.jpr"/></hash>
       <hash><url n="URL" path="PickProject/PickProject.jpr"/></hash>
    </list>
